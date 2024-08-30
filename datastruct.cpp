@@ -1,3 +1,8 @@
+/*
+ * datastruct.cpp
+ * Copyright 2019: Dr. Phillipe Wernette (pwernett@mtu.edu)
+ */
+
 #include <iostream>
 #include <fstream>
 #include <random>

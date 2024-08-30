@@ -1,8 +1,6 @@
 /*
  * datastruct.hpp
- *
- *  Created on: May 14, 2018
- *      Author: Dr. Phil Wernette (wernette@uwindsor.ca)
+ * Author: Dr. Phillipe Wernette (pwernett@mtu.edu)
  */
 
 #include <math.h>

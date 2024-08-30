@@ -2,7 +2,7 @@
  * This program is intended to compute the probability that two surfaces are significantly different,
  * while accounting for a spatially variable error in both surfaces.
  *
- * Copyright 2019: Dr. Phillipe Wernette (wernette@uwindsor.ca OR pawernette@usgs.gov)
+ * Copyright 2019: Dr. Phillipe Wernette (pwernett@mtu.edu)
  * TO DO:
  *  1) Add option to specify global error value for raster 1 and/or 2 -> to be used in OutRaster::pchange function
  *  2) Add additional outputs as (a) Z-score and (b) t-score
