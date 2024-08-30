@@ -1,6 +1,6 @@
 /*
  * datastruct.hpp
- * Author: Dr. Phillipe Wernette (pwernett@mtu.edu)
+ * Copyright 2019: Dr. Phillipe Wernette (pwernett@mtu.edu)
  */
 
 #include <math.h>
