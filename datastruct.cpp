@@ -149,6 +149,23 @@ void Header::min_max(vector<double> r){
 //	cout << Header::valmin << endl;
 }
 
+void Header::min_max(vector<long double> r){
+	vector<long double> rr = r;
+
+//	cout << rr[4141] << endl;
+
+	sort(rr.begin(), rr.end());
+
+	rr.erase(remove(rr.begin(), rr.end(), -9999), rr.end());
+	rr.erase(remove(rr.begin(), rr.end(), -99999), rr.end());
+
+	Header::valmax = rr.back();
+//	cout << Header::valmax << endl;
+
+	Header::valmin = rr.front();
+//	cout << Header::valmin << endl;
+}
+
 ////this function loads in the parameters from a given file name. Returns
 ////false if there is a problem opening the file.
 bool Header::readENVIheader(string filename){
@@ -284,7 +301,7 @@ bool Header::readENVIheader(string filename){
 
 	// compute total number of pixels
 	Header::npix = Header::ncols * Header::nlines;
-	Header::xmax = -99999;
+	Header::xmax = -9999;
 	Header::ymin = 9999999999;
 
 	infile.close();
@@ -324,7 +341,7 @@ bool Header::writeHDR(string filename, vector<unsigned int> outinfo){
 	(void) fprintf(wrhead, "byte order = 0\n");
 	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
 	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
-	(void) fprintf(wrhead, "data ignore value = -99999\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
 	(void) fprintf(wrhead, "wavelength units = Unknown");
 
 	// close the header file
@@ -367,7 +384,7 @@ bool Header::writeHDR(string filename, vector<int> outinfo){
 	(void) fprintf(wrhead, "byte order = 0\n");
 	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
 	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
-	(void) fprintf(wrhead, "data ignore value = -99999\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
 	(void) fprintf(wrhead, "wavelength units = Unknown");
 
 	// close the header file
@@ -410,7 +427,7 @@ bool Header::writeHDR(string filename, vector<long int> outinfo){
 	(void) fprintf(wrhead, "byte order = 0\n");
 	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
 	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
-	(void) fprintf(wrhead, "data ignore value = -99999\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
 	(void) fprintf(wrhead, "wavelength units = Unknown");
 
 	// close the header file
@@ -453,7 +470,7 @@ bool Header::writeHDR(string filename, vector<float> outinfo){
 	(void) fprintf(wrhead, "byte order = 0\n");
 	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
 	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
-	(void) fprintf(wrhead, "data ignore value = -99999\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
 	(void) fprintf(wrhead, "wavelength units = Unknown");
 
 	// close the header file
@@ -495,7 +512,49 @@ bool Header::writeHDR(string filename, vector<double> outinfo){
 	(void) fprintf(wrhead, "byte order = 0\n");
 	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
 	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
-	(void) fprintf(wrhead, "data ignore value = -99999\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
+	(void) fprintf(wrhead, "wavelength units = Unknown");
+
+	// close the header file
+	fclose(wrhead);
+
+//	cout << "Successfully wrote " << tmp.c_str() << endl;
+
+	return true;
+};
+bool Header::writeHDR(string filename, vector<long double> outinfo){
+	string tmp = filename.append(".hdr");
+
+	// initialize the file pointer
+	FILE *wrhead;
+
+	// open the file
+	wrhead = fopen(tmp.c_str(), "w");
+	if(!wrhead){
+		cerr << "ERROR: Cannot write " << tmp.c_str() << endl;
+		exit(1);
+	}
+
+//	dattype = datout(outinfo);
+
+	Header::interleave = "bsq";
+
+	// write the ascii header file
+	(void) fprintf(wrhead, "ENVI\n");
+	(void) fprintf(wrhead, "description = ", filename, "\n"); // file description
+	(void) fprintf(wrhead, "samples = %i\n", Header::ncols); // number of columns
+	(void) fprintf(wrhead, "lines = %i\n", Header::nlines); // number of lines
+	(void) fprintf(wrhead, "bands = %i\n", Header::bands); // number of bands
+	(void) fprintf(wrhead, "header offset = 0\n");
+	(void) fprintf(wrhead, "file type = ENVI Standard\n");
+//	(void) fprintf(wrhead, "data type = %i\n", dattype); // output data type
+	(void) fprintf(wrhead, "data type = %i\n", 5); // output data type
+	(void) fprintf(wrhead, "interleave = %s\n", Header::interleave.c_str()); // interleave format (bsq, bil, or bip)
+	(void) fprintf(wrhead, "sensor type = Unknown\n");
+	(void) fprintf(wrhead, "byte order = 0\n");
+	(void) fprintf(wrhead, "map info = {%s, 1.00000, 1.00000, %le, %le, %le, %le, %s, %s, %s, units=%s}\n", Header::coordsys.c_str(), Header::ulx, Header::uly, Header::xres, Header::yres, Header::utm_zone_number.c_str(), Header::utm_zone_band.c_str(), Header::datum.c_str(), Header::units.c_str());
+	(void) fprintf(wrhead, "coordinate system string = {PROJCS[\"UTM_Zone_14N\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]}\n");
+	(void) fprintf(wrhead, "data ignore value = -9999\n");
 	(void) fprintf(wrhead, "wavelength units = Unknown");
 
 	// close the header file
@@ -641,6 +700,36 @@ bool Header::writeDAT(string fname, vector<double> outrast){
 
 	const char* dat = reinterpret_cast<const char*>(&outrast[0]);
 	size_t bytes = outrast.size() * sizeof(double);
+
+	// write out vector to binary file
+	fout.write(dat, bytes);
+
+	// close the file
+	fout.close();
+
+//	cout << "Successfully wrote " << tmp << endl;
+
+	///////////////////// START DEBUGGING /////////////////////
+//	cout << "writeDAT::outdat.size() = " << (outdat.size()) << endl;
+//	cout << "writeDAT output file size = " << (outdat.size() * sizeof(float)) << endl;
+	/////////////////////  END DEBUGGING  /////////////////////
+
+	return true;
+};
+
+bool Header::writeDAT(string fname, vector<long double> outrast){
+	string tmp = fname.append(".dat");
+
+	// open the file output stream
+	ofstream fout;								// initiate output stream
+	fout.open(tmp, ios::out | ios::binary);		// open file from output stream
+	if (!fout) {								// exit if unable to open (create) file
+		cerr << "Unable to write " << tmp << endl;
+		system("pause");
+	}
+
+	const char* dat = reinterpret_cast<const char*>(&outrast[0]);
+	size_t bytes = outrast.size() * sizeof(long double);
 
 	// write out vector to binary file
 	fout.write(dat, bytes);
@@ -929,8 +1018,8 @@ bool OutRaster::subtract(Raster t1, Raster t2){
 
 bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, Raster t2e){
 	// fill rasters with default no data values
-	fill(OutRaster::val.begin(), OutRaster::val.end(), -99999);
-	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -99999);
+	fill(OutRaster::val.begin(), OutRaster::val.end(), -9999);
+	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -9999);
   // fill(OutRaster::z_score_value.begin(), OutRaster::z_score_value.end(), -99999);
 
 	int iter;
@@ -977,8 +1066,8 @@ bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, Raster t2e){
       }
 
 		} else{
-			OutRaster::val[i] = -99999;
-      OutRaster::prob[i] = -99999;
+			OutRaster::val[i] = -9999;
+      OutRaster::prob[i] = -9999;
       // OutRaster::z_score_value[i] = -99999;
 		}
   }
@@ -988,8 +1077,8 @@ bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, Raster t2e){
 
 bool OutRaster::pchange(Raster t1, float t1e, Raster t2, Raster t2e){
 	// fill rasters with default no data values
-	fill(OutRaster::val.begin(), OutRaster::val.end(), -99999);
-	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -99999);
+	fill(OutRaster::val.begin(), OutRaster::val.end(), -9999);
+	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -9999);
   // fill(OutRaster::z_score_value.begin(), OutRaster::z_score_value.end(), -99999);
 
 	int iter;
@@ -1036,8 +1125,8 @@ bool OutRaster::pchange(Raster t1, float t1e, Raster t2, Raster t2e){
       }
 
 		} else{
-			OutRaster::val[i] = -99999;
-      OutRaster::prob[i] = -99999;
+			OutRaster::val[i] = -9999;
+      OutRaster::prob[i] = -9999;
       // OutRaster::z_score_value[i] = -99999;
 		}
   }
@@ -1047,8 +1136,8 @@ bool OutRaster::pchange(Raster t1, float t1e, Raster t2, Raster t2e){
 
 bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, float t2e){
 	// fill rasters with default no data values
-	fill(OutRaster::val.begin(), OutRaster::val.end(), -99999);
-	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -99999);
+	fill(OutRaster::val.begin(), OutRaster::val.end(), -9999);
+	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -9999);
   // fill(OutRaster::z_score_value.begin(), OutRaster::z_score_value.end(), -99999);
 
 	int iter;
@@ -1095,8 +1184,8 @@ bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, float t2e){
       }
 
 		} else{
-			OutRaster::val[i] = -99999;
-      OutRaster::prob[i] = -99999;
+			OutRaster::val[i] = -9999;
+      OutRaster::prob[i] = -9999;
       // OutRaster::z_score_value[i] = -99999;
 		}
   }
@@ -1106,8 +1195,8 @@ bool OutRaster::pchange(Raster t1, Raster t1e, Raster t2, float t2e){
 
 bool OutRaster::pchange(Raster t1, float t1e, Raster t2, float t2e){
 	// fill rasters with default no data values
-	fill(OutRaster::val.begin(), OutRaster::val.end(), -99999);
-	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -99999);
+	fill(OutRaster::val.begin(), OutRaster::val.end(), -9999);
+	fill(OutRaster::prob.begin(), OutRaster::prob.end(), -9999);
   // fill(OutRaster::z_score_value.begin(), OutRaster::z_score_value.end(), -99999);
 
 	int iter;
@@ -1154,8 +1243,8 @@ bool OutRaster::pchange(Raster t1, float t1e, Raster t2, float t2e){
       }
 
 		} else{
-			OutRaster::val[i] = -99999;
-      OutRaster::prob[i] = -99999;
+			OutRaster::val[i] = -9999;
+      OutRaster::prob[i] = -9999;
       // OutRaster::z_score_value[i] = -99999;
 		}
   }

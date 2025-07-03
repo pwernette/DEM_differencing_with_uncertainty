@@ -74,8 +74,8 @@ public:
 	double uly = 0;			// upper-left y coordinate
 	double ymin = 999999999;
 	double xmax = -99999999;
-	double valmin = 99999;
-	double valmax = -99999;
+	double valmin = 9999;
+	double valmax = -9999;
 	string utm_zone_number;
 	string utm_zone_band;
 	string datum;
@@ -106,6 +106,7 @@ public:
 	void min_max(vector<long int> r);
 	void min_max(vector<float> r);
 	void min_max(vector<double> r);
+	void min_max(vector<long double> r);
 
 	bool readENVIheader(string Fname);
 
@@ -114,12 +115,14 @@ public:
 	bool writeHDR(string filename, vector<long int> outdat);
 	bool writeHDR(string filename, vector<float> outdat);
 	bool writeHDR(string filename, vector<double> outdat);
+	bool writeHDR(string filename, vector<long double> outdat);
 
 	bool writeDAT(string fname, vector<unsigned int> outdat);
 	bool writeDAT(string fname, vector<int> outdat);
 	bool writeDAT(string fname, vector<long int> outdat);
 	bool writeDAT(string fname, vector<float> outdat);
 	bool writeDAT(string fname, vector<double> outdat);
+	bool writeDAT(string fname, vector<long double> outdat);
 };
 
 
