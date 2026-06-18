@@ -5,7 +5,7 @@ dem_change.py — Probabilistic DEM Change Detection with Uncertainty
 Computes statistically significant elevation changes between two Digital Elevation
 Models (DEMs) with spatially variable error surfaces using an analytical approach.
 
-Converted from C++ (datastruct.cpp / main.cpp) by Dr. Phillipe Wernette.
+Converted from C++ (datastruct.cpp / main.cpp) by Phillipe Wernette, PhD.
 Python port leverages:
   - rasterio: Geospatial raster I/O with windowed reading/writing
   - NumPy: Vectorized mathematical operations for efficient tile processing
@@ -73,6 +73,7 @@ Whitespace-separated key-value pairs (case-insensitive keys):
     error2          <path_without_extension OR float>  # t1 uncertainty (95% CI)
     oput            <output_path_without_extension>    # Output base name
     nsimulations    <int>                       # [parsed but unused — analytical method]
+    target_epsg     <EPSG code>                 # [OPTIONAL] Reproject to this EPSG code
 
 Example params.ini:
     input1    dem_2010
@@ -81,6 +82,7 @@ Example params.ini:
     error2    error_2015
     oput      dem_change_2010_2015
     nsimulations 100
+    target_epsg  4326
 
 Notes
 -----
@@ -92,6 +94,9 @@ Notes
 - Missing or invalid data is detected as values <= NODATA_IN (-9999.0)
   These regions produce NoData outputs (-9999.0)
 - Parallel processing uses all available CPU cores (configurable via MAX_WORKERS)
+- target_epsg is OPTIONAL: if provided, output rasters are reprojected to that EPSG code
+  (e.g., 4326 for WGS84, 3857 for Web Mercator)
+  Reprojected outputs are saved with _epsg{code} suffix
 
 References
 ----------
@@ -129,6 +134,17 @@ import rasterio.shutil as rio_shutil
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from rasterio.transform import from_bounds
+from rasterio.crs import CRS
+from rasterio.vrt import WarpedVRT
+
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+    def tqdm(iterable, **kwargs):
+        """Fallback if tqdm is not available."""
+        return iterable
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -202,7 +218,7 @@ def load_params(ini_path: str = "params.ini") -> dict:
     except FileNotFoundError:
         raise FileNotFoundError(f"Cannot find '{ini_path}'")
 
-    keys = ("input1", "error1", "input2", "error2", "oput", "nsimulations")
+    keys = ("input1", "error1", "input2", "error2", "oput", "nsimulations", "target_epsg")
     it = iter(tokens)
     for token in it:
         key = token.lower()
@@ -214,6 +230,7 @@ def load_params(ini_path: str = "params.ini") -> dict:
             raise ValueError(f"Missing required key '{required}' in {ini_path}")
 
     p.setdefault("nsimulations", "100")
+    p.setdefault("target_epsg", None)  # Optional: None means no reprojection
     log.info("Parameters loaded from %s", ini_path)
     return p
 
@@ -629,6 +646,105 @@ def _prob_from_intersection(c, mu_lo, sd_lo, mu_hi, _sd_hi):
     return prob
 
 
+def reproject_raster(src_path: str, dst_path: str, target_epsg: int) -> None:
+    """
+    Reproject a raster to a target EPSG coordinate system.
+
+    Creates a reprojected Cloud-Optimized GeoTIFF with the same compression
+    and internal tiling as the original.
+
+    Parameters
+    ----------
+    src_path : str
+        Path to source GeoTIFF.
+    dst_path : str
+        Path to output reprojected GeoTIFF.
+    target_epsg : int
+        Target EPSG code (e.g., 3857 for Web Mercator, 4326 for WGS84).
+
+    Raises
+    ------
+    ValueError
+        If target EPSG code is invalid or reprojection fails.
+
+    Notes
+    -----
+    - Output maintains COG format with ZSTD compression
+    - Uses nearest-neighbor resampling for categorical data
+    - Preserves NoData values
+    """
+    try:
+        target_crs = CRS.from_epsg(target_epsg)
+    except Exception as e:
+        log.error("Failed to create CRS from EPSG:%d: %s", target_epsg, str(e))
+        log.error("This may be due to PROJ database issues in your environment.")
+        log.error("Skipping reprojection.")
+        raise
+    
+    with rasterio.open(src_path) as src:
+        # Check if already in target CRS
+        if src.crs == target_crs:
+            log.info("  Source already in target CRS (EPSG:%d), skipping reprojection", target_epsg)
+            return
+        
+        log.info("  Reprojecting from %s to EPSG:%d", src.crs, target_epsg)
+        
+        # Use WarpedVRT to read data in target CRS
+        with WarpedVRT(src, crs=target_crs, resampling=Resampling.bilinear) as vrt:
+            # Create output profile based on warped data
+            profile = vrt.profile.copy()
+            profile.update(
+                driver="GTiff",
+                compress=COG_COMPRESS,
+                zstd_level=COG_ZSTD_LEVEL,
+                predictor=COG_PREDICTOR,
+                tiled=True,
+                blockxsize=TILE_COLS,
+                blockysize=TILE_ROWS,
+                bigtiff=COG_BIGTIFF,
+            )
+            
+            # Write reprojected raster
+            with rasterio.open(dst_path, "w", **profile) as dst:
+                # Copy data band by band
+                for i in range(1, src.count + 1):
+                    data = vrt.read(i)
+                    dst.write(data, i)
+
+
+def reproject_outputs(change_path: str, prob_path: str, target_epsg: int) -> tuple:
+    """
+    Reproject both output rasters to a target EPSG code.
+
+    Parameters
+    ----------
+    change_path : str
+        Path to change raster output.
+    prob_path : str
+        Path to probability raster output.
+    target_epsg : int
+        Target EPSG code.
+
+    Returns
+    -------
+    tuple (reprojected_change_path, reprojected_prob_path)
+        Paths to reprojected output files (with _epsg{code} suffix).
+    """
+    base_change = change_path.rsplit(".", 1)[0]  # Remove extension
+    base_prob = prob_path.rsplit(".", 1)[0]
+    
+    reprojected_change = f"{base_change}_epsg{target_epsg}.tif"
+    reprojected_prob = f"{base_prob}_epsg{target_epsg}.tif"
+    
+    log.info("\n--- REPROJECTION (PASS 3) ---")
+    log.info("Reprojecting outputs to EPSG:%d", target_epsg)
+    
+    reproject_raster(change_path, reprojected_change, target_epsg)
+    reproject_raster(prob_path, reprojected_prob, target_epsg)
+    
+    return reprojected_change, reprojected_prob
+
+
 def compute_tile(mu1: np.ndarray,
                  sd1: np.ndarray,
                  mu2: np.ndarray,
@@ -929,7 +1045,7 @@ def _cog_profile(ref_src: rasterio.DatasetReader,
 def create_temp_raster(tmp_path: str,
                        ref_src: rasterio.DatasetReader,
                        dtype=np.float32,
-                       nodata: float = NODATA_OUT) -> rasterio.DatasetWriter:
+                       nodata: float = NODATA_OUT):
     """
     Create and open a temporary GeoTIFF for Pass 1 pixel writing.
 
@@ -946,7 +1062,7 @@ def create_temp_raster(tmp_path: str,
 
     Returns
     -------
-    rasterio.DatasetWriter
+    rasterio.io.DatasetWriter
         Opened temporary GeoTIFF ready for windowed writes.
 
     Notes
@@ -1073,6 +1189,12 @@ def main(ini_path: str = "params.ini"):
     - 512×512 internal tiles (COG standard)
     - Same CRS and geotransform as input DEMs
     """
+    print("\n" + "="*70)
+    print("  PROBABILISTIC DEM CHANGE DETECTION WITH UNCERTAINTY")
+    print("="*70)
+    log.info("Starting DEM change detection workflow")
+    log.info("Configuration file: %s", ini_path)
+    
     params = load_params(ini_path)
 
     s1_path  = params["input1"]
@@ -1080,7 +1202,19 @@ def main(ini_path: str = "params.ini"):
     se1_spec = params["error1"]
     se2_spec = params["error2"]
     out_base = params["oput"]
+    target_epsg_str = params.get("target_epsg")  # None if not specified
+    target_epsg = None
+    if target_epsg_str:
+        try:
+            target_epsg = int(target_epsg_str)
+        except (ValueError, TypeError):
+            log.warning("Invalid target_epsg value: %s (skipping reprojection)", target_epsg_str)
+            target_epsg = None
 
+    log.info("\n--- INPUT DATA ---")
+    log.info("DEM 1 (t0):  %s", s1_path)
+    log.info("DEM 2 (t1):  %s", s2_path)
+    
     # Determine if error inputs are global scalars or raster paths
     se1_is_float = is_float(se1_spec)
     se2_is_float = is_float(se2_spec)
@@ -1090,11 +1224,16 @@ def main(ini_path: str = "params.ini"):
         "se2": float(se2_spec) if se2_is_float else None,
     }
 
-    log.info("se1_is_float=%s  se2_is_float=%s", se1_is_float, se2_is_float)
+    log.info("\n--- UNCERTAINTY MODELS ---")
     if se1_is_float:
-        log.info("Global uncertainty t0 = %.4f", global_errors["se1"])
+        log.info("Error 1 (t0): Global scalar = %.4f (95%% CI)", global_errors["se1"])
+    else:
+        log.info("Error 1 (t0): Raster = %s", se1_spec)
+    
     if se2_is_float:
-        log.info("Global uncertainty t1 = %.4f", global_errors["se2"])
+        log.info("Error 2 (t1): Global scalar = %.4f (95%% CI)", global_errors["se2"])
+    else:
+        log.info("Error 2 (t1): Raster = %s", se2_spec)
 
     # Open reference rasters to verify compatibility and read metadata
     with open_raster(s1_path) as src1, open_raster(s2_path) as src2:
@@ -1117,7 +1256,10 @@ def main(ini_path: str = "params.ini"):
                 bounds_list.append(get_raster_bounds(sre2))
         
         intersect_bounds = compute_intersection_bounds(bounds_list)
-        log.info("Intersection bounds: (%.2f, %.2f, %.2f, %.2f)", *intersect_bounds)
+        log.info("\n--- SPATIAL ANALYSIS ---")
+        log.info("CRS: %s", src1.crs)
+        log.info("Pixel size: %.4f x %.4f", abs(src1.transform[0]), abs(src1.transform[4]))
+        log.info("Intersection bounds: minx=%.2f, miny=%.2f, maxx=%.2f, maxy=%.2f", *intersect_bounds)
 
         # Extract pixel size from first raster
         pixel_size = abs(src1.transform[0])
@@ -1138,10 +1280,8 @@ def main(ini_path: str = "params.ini"):
         # Build windows over the intersection extent
         windows = list(build_windows(intersect_bounds, pixel_size, TILE_ROWS, TILE_COLS))
         n_tiles = len(windows)
-        log.info(
-            "Intersection extent → %d tiles (%d×%d px each)",
-            n_tiles, TILE_ROWS, TILE_COLS,
-        )
+        log.info("\n--- TILING STRATEGY ---")
+        log.info("Total tiles to process: %d (%d×%d pixels each)", n_tiles, TILE_ROWS, TILE_COLS)
 
         # Create output raster profile with intersection extent
         # Use src1 as reference for CRS
@@ -1161,7 +1301,10 @@ def main(ini_path: str = "params.ini"):
         prob_tmp_path = os.path.join(out_dir, out_name + "_probability_tmp.tif")
 
         # ── Pass 1: write pixel data to temp (uncompressed) GeoTIFFs ────────
-        log.info("Pass 1: writing pixel data to temporary files ...")
+        log.info("\n--- PASS 1: DATA PROCESSING & TILE WRITING ---")
+        log.info("Processing %d tiles in parallel...", n_tiles)
+        if HAS_TQDM:
+            log.info("(Progress bar enabled with tqdm)")
         
         # Create output profiles with intersection extent
         output_profile_change = src1.profile.copy()
@@ -1197,7 +1340,10 @@ def main(ini_path: str = "params.ini"):
                         pool.submit(_process_window, arg): arg
                         for arg in work_args
                     }
-                    for future in as_completed(futures):
+                    # Use tqdm for progress bar if available
+                    futures_iter = tqdm(as_completed(futures), total=len(futures), 
+                                       desc="Processing tiles", unit="tile", disable=not HAS_TQDM)
+                    for future in futures_iter:
                         try:
                             win, change_tile, prob_tile = future.result()
                         except Exception as exc:
@@ -1208,32 +1354,80 @@ def main(ini_path: str = "params.ini"):
                         dst_prob.write(prob_tile[np.newaxis, :, :],     window=win)
 
                         completed += 1
-                        if completed % max(1, n_tiles // 20) == 0 or completed == n_tiles:
-                            log.info("  %d / %d tiles complete (%.0f%%)",
-                                    completed, n_tiles, 100 * completed / n_tiles)
+                        if completed % max(1, n_tiles // 10) == 0 or completed == n_tiles:
+                            pct = 100 * completed / n_tiles
+                            log.info("  Progress: %d / %d tiles (%.1f%%)",
+                                    completed, n_tiles, pct)
 
         # ── Pass 2: build overviews + copy to final COG ──────────────────────
-        log.info("Pass 2: building overviews and finalising COG outputs ...")
+        log.info("\n--- PASS 2: FINALIZATION (OVERVIEWS & COMPRESSION) ---")
 
-        # Create a temporary raster object for finalize_cog (needs profile info)
+        # Process change raster
         with rasterio.open(change_tmp_path) as tmp_src:
-            log.info("  Processing change raster ...")
+            log.info("  Building overviews and compressing change raster...")
             finalize_cog(change_tmp_path, change_path, tmp_src)
-            Path(change_tmp_path).unlink()
+        # Close the file handle before deleting
+        Path(change_tmp_path).unlink()
 
-            log.info("  Processing probability raster ...")
+        # Process probability raster
+        with rasterio.open(prob_tmp_path) as tmp_src:
+            log.info("  Building overviews and compressing probability raster...")
             finalize_cog(prob_tmp_path, prob_path, tmp_src)
-            Path(prob_tmp_path).unlink()
+        # Close the file handle before deleting
+        Path(prob_tmp_path).unlink()
 
-    log.info("Successfully wrote COG: %s  (ZSTD level %d, predictor %d)",
-             change_path, COG_ZSTD_LEVEL, COG_PREDICTOR)
-    log.info("Successfully wrote COG: %s  (ZSTD level %d, predictor %d)",
-             prob_path, COG_ZSTD_LEVEL, COG_PREDICTOR)
-
-    log.info("Successfully wrote COG: %s  (ZSTD level %d, predictor %d)",
-             change_path, COG_ZSTD_LEVEL, COG_PREDICTOR)
-    log.info("Successfully wrote COG: %s  (ZSTD level %d, predictor %d)",
-             prob_path, COG_ZSTD_LEVEL, COG_PREDICTOR)
+    # Final summary
+    log.info("\n" + "="*70)
+    log.info("WORKFLOW COMPLETE")
+    log.info("="*70)
+    log.info("\n--- OUTPUT FILES ---")
+    log.info("✓ Change raster (elevation difference):")
+    log.info("  Location: %s", os.path.abspath(change_path))
+    log.info("  Size: %d × %d pixels", output_width, output_height)
+    log.info("  CRS: %s", src1.crs)
+    log.info("  Units: Same as input DEMs (typically meters)")
+    log.info("  Compression: ZSTD level %d with predictor %d", COG_ZSTD_LEVEL, COG_PREDICTOR)
+    log.info("\n✓ Probability raster (significance of change):")
+    log.info("  Location: %s", os.path.abspath(prob_path))
+    log.info("  Size: %d × %d pixels", output_width, output_height)
+    log.info("  CRS: %s", src1.crs)
+    log.info("  Range: [0.0 = no change confidence, 1.0 = significant change confidence]")
+    log.info("  Compression: ZSTD level %d with predictor %d", COG_ZSTD_LEVEL, COG_PREDICTOR)
+    
+    # Handle optional reprojection
+    if target_epsg is not None:
+        try:
+            reprojected_change, reprojected_prob = reproject_outputs(change_path, prob_path, target_epsg)
+            log.info("\n✓ Reprojected change raster (EPSG:%d):")
+            log.info("  Location: %s", os.path.abspath(reprojected_change))
+            log.info("\n✓ Reprojected probability raster (EPSG:%d):")
+            log.info("  Location: %s", os.path.abspath(reprojected_prob))
+            final_change = reprojected_change
+            final_prob = reprojected_prob
+        except Exception as e:
+            log.error("\n✗ Reprojection failed: %s", str(e))
+            log.error("Possible cause: PROJ database version mismatch in your conda environment.")
+            log.error("Continuing with original (non-reprojected) output files.")
+            log.error("To fix this, try: conda install -c conda-forge proj gdal")
+            final_change = change_path
+            final_prob = prob_path
+    else:
+        final_change = change_path
+        final_prob = prob_path
+    
+    log.info("\n--- SUMMARY ---")
+    log.info("Output directory: %s", os.path.abspath(out_dir))
+    log.info("All output files are Cloud-Optimized GeoTIFFs (COG) with embedded pyramids")
+    log.info("\n" + "="*70 + "\n")
+    
+    print("\n" + "="*70)
+    print("  ✓ SUCCESS: Output files are ready!")
+    print("  ")
+    print(f"  Change raster:      {os.path.abspath(final_change)}")
+    print(f"  Probability raster: {os.path.abspath(final_prob)}")
+    if target_epsg is not None:
+        print(f"  (Reprojected to EPSG:{target_epsg})")
+    print("="*70 + "\n")
 
 
 # ---------------------------------------------------------------------------
