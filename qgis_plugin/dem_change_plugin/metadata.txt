@@ -1,0 +1,18 @@
+[general]
+name=DEM Change Detection
+qgisMinimumVersion=3.16
+qgisMaximumVersion=3.99
+description=Probabilistic DEM change detection with spatially variable uncertainty surfaces. Computes a Difference of DEMs (DoD) and per-pixel probability of significant change based on the analytical intersection of two Gaussian error distributions.
+version=1.0.0
+author=Phillipe Wernette, PhD
+email=pwernett@msu.edu
+about=This plugin computes statistically significant elevation changes between two DEMs while accounting for spatially variable uncertainty in both epochs. Inputs can be any GDAL-readable raster. Error surfaces may be either spatially variable rasters or a single global scalar value (interpreted as a 95% confidence interval). Outputs are Cloud-Optimized GeoTIFFs (ZSTD compression, predictor 3, BigTIFF, embedded overviews): a raw elevation difference raster and a probability-of-change raster [0,1]. Processing is tile-based (512x512) and parallelised across available CPU cores. Developed at the Michigan State University Remote Sensing & GIS Research and Outreach Services (RS&GIS) centre.
+tracker=https://github.com/pwernette/DEM_differencing_with_uncertainty/issues
+repository=https://github.com/pwernette/DEM_differencing_with_uncertainty
+homepage=https://github.com/pwernette/DEM_differencing_with_uncertainty
+hasProcessingProvider=yes
+tags=DEM, change detection, LiDAR, UAS, uncertainty, probability, raster, geomorphology, elevation, DoD
+category=Raster
+icon=icon.png
+experimental=False
+deprecated=False

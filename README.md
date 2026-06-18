@@ -10,6 +10,7 @@ This project provides a probabilistic approach to detecting "real" changes in di
 
 - **[program_c](./program_c/README.md)** — C++ implementation offering high performance for large-scale analyses
 - **[program_python](./program_python/README.md)** — Python implementation offering flexibility and ease of use
+- **[qgis_plugin](./qgis_plugin/README.md)** — QGIS plugin for visualizing and analyzing DEM change
 
 Although the described approach was initially used to describe changes in landscape elevation, it is adaptable to a wide range of spatially-contingent phenomena.
 
@@ -19,6 +20,7 @@ Select an implementation based on your needs:
 
 - **Use C++** if you need maximum performance and have pre-compiled binaries available
 - **Use Python** for more accessible development and experimentation
+- **Use QGIS** for visualization and analysis of DEM change in QGIS software
 
 Each implementation has its own README with installation and usage instructions.
 
