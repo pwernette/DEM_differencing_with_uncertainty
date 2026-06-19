@@ -1,5 +1,7 @@
 # DEM Change Detection with Uncertainty — Python Port
 
+**Citation:** pwernette. (2026). pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
+
 ## Table of Contents
 
 1. [Overview](#overview)

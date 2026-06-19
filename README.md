@@ -1,5 +1,7 @@
 # DEM change probability in context of spatially variable uncertainty
 
+**Citation:** pwernette. (2026). pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
+
 This repository contains implementations for analyzing DEM change accounting for spatially variable uncertainty. The work is the focus of the following paper:
 
 > Wernette, P., J. Lehner, and C. Houser. (2020) What change is 'real'? A probabilistic approach to accounting for uncertainty in environmental change analysis. *Geomorphology*, 355, 107083. http://doi.org/10.1016/j.geomorph.2020.107083.
