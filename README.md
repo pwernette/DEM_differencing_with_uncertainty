@@ -4,9 +4,29 @@ This repository contains implementations for analyzing DEM change accounting for
 
 > Wernette, P., J. Lehner, and C. Houser. (2020) What change is 'real'? A probabilistic approach to accounting for uncertainty in environmental change analysis. *Geomorphology*, 355, 107083. http://doi.org/10.1016/j.geomorph.2020.107083.
 
+The following maps illuestrate the DEM at time t (left) and time t+1 (right):
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+  <div style="flex: 1;">
+    <img src="./assets/map_dem_01.png" alt="DEM Map 1" width="100%">
+  </div>
+  <div style="flex: 1;">
+    <img src="./assets/map_dem_02.png" alt="DEM Map 2" width="100%">
+  </div>
+</div>
+
+Using this program, we can compute the magnitude of change (left) and the probability of change (right) at each pixel:
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+  <div style="flex: 1;">
+    <img src="./assets/map_dem_change.png" alt="DEM Change Map" width="100%">
+  </div>
+  <div style="flex: 1;">
+    <img src="./assets/map_dem_change_probability.png" alt=Probability of Change Map" width="100%">
+  </div>
+
 ## Overview
 
 This project provides a probabilistic approach to detecting "real" changes in digital elevation models (DEMs) by accounting for spatially variable uncertainty. Two implementations are available:
+
 
 - **[program_c](./program_c/README.md)** — C++ implementation offering high performance for large-scale analyses
 - **[program_python](./program_python/README.md)** — Python implementation offering flexibility and ease of use
