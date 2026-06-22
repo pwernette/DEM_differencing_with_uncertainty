@@ -1,6 +1,6 @@
 # DEM change probability in context of spatially variable uncertainty (C++ Implementation)
 
-**Citation:** Wernette, P. (2026). pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![DOI](../assets/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
+**Citation:** Wernette, P. and J. Lehner (2026) pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![DOI](../assets/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
 
 This directory contains the C++ implementation of the DEM differencing with uncertainty analysis. The compiled program and broader context can be found in the repository root.
 
