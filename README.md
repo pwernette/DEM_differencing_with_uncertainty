@@ -1,6 +1,6 @@
 # DEM change probability in context of spatially variable uncertainty
 
-**Citation:** Wernette, P. and J. Lehner (2026) pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![DOI](./assets/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
+**Citation:** Wernette, P. and J. Lehner (2026) pwernette/DEM_differencing_with_uncertainty: DEM Change with Uncertainty (1.01). Zenodo. [![https://doi.org/10.5281/zenodo.20754255](./assets/zenodo.20754255.svg)](https://doi.org/10.5281/zenodo.20754255)
 
 This repository contains implementations for analyzing DEM change accounting for spatially variable uncertainty. The work is the focus of the following paper:
 
@@ -22,8 +22,9 @@ Using this program, we can compute the magnitude of change (left) and the probab
     <img src="./assets/map_dem_change.png" alt="DEM Change Map" width="100%">
   </div>
   <div style="flex: 1;">
-    <img src="./assets/map_dem_change_probability.png" alt=Probability of Change Map" width="100%">
+    <img src="./assets/map_dem_change_probability.png" alt="Probability of Change Map" width="100%">
   </div>
+</div>
 
 ## Overview
 

@@ -34,7 +34,7 @@ x86_64-w64-mingw32-g++ -lm -O2 -static *.cpp -o foo.exe
 
 # Usage
 ## Data format/prep
-Before using the program, please be sure that your raster files are
+Before using the program, please be sure that your raster files are in ENVI binary format (`.dat` + `.hdr` header sidecar). The header file must include standard ENVI fields: `samples`, `lines`, `bands`, `data type`, `interleave`, `byte order`, and a map info line that specifies the coordinate reference system, upper-left pixel coordinates, and pixel size. Each raster (DEM and error surface) must share the same spatial extent, pixel size, and number of rows and columns.
 
 ## Initialization file
 The program requires a `params.ini` file be in the same directory as the program and ENVI format rasters. This file is a human-readable text file with the following structure:
